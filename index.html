@@ -1,0 +1,583 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.5, user-scalable=yes">
+    <title>有声时薪计算器 · 喜播学堂</title>
+    <!-- 引用 Font Awesome 图标库 (v6 免费版) 用于简洁图标 -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        /* 全局重置 & 字体 */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+        }
+        body {
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background: #fef5ea;  /* 极浅橙调背景 */
+            padding: 20px;
+        }
+        /* 卡片容器 — 玻璃拟态 + 温暖橙系 */
+        .card {
+            max-width: 560px;
+            width: 100%;
+            background: rgba(255, 245, 235, 0.75);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border-radius: 40px;
+            padding: 32px 28px;
+            box-shadow: 0 20px 40px -12px rgba(200, 120, 40, 0.25),
+                        0 8px 24px -8px rgba(255, 140, 0, 0.15);
+            border: 1px solid rgba(255, 215, 175, 0.5);
+            transition: all 0.2s ease;
+            position: relative;
+            /* 左上角角标区域留白 */
+        }
+
+        /* ===== 角标 · 喜播学堂 ===== */
+        .badge-corner {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100px;
+            height: 100px;
+            overflow: hidden;
+            pointer-events: none;
+            z-index: 5;
+        }
+        .badge-corner span {
+            position: absolute;
+            display: inline-block;
+            background: #ff8c42;  /* 橙色调主角标 */
+            color: #fff;
+            font-weight: 600;
+            font-size: 13px;
+            letter-spacing: 0.5px;
+            padding: 6px 28px;
+            top: 22px;
+            left: -28px;
+            transform: rotate(-45deg);
+            box-shadow: 0 4px 12px rgba(255, 100, 0, 0.3);
+            border-radius: 4px;
+            text-shadow: 0 1px 2px rgba(0,0,0,0.1);
+            white-space: nowrap;
+            border: 1px solid rgba(255,255,255,0.2);
+            backdrop-filter: blur(2px);
+        }
+        /* 小喇叭icon 点缀角标 */
+        .badge-corner i {
+            margin-right: 5px;
+            font-size: 13px;
+        }
+
+        /* 标题区 */
+        .header {
+            display: flex;
+            flex-direction: column;
+            margin-bottom: 28px;
+            padding-top: 12px;
+        }
+        .header h1 {
+            font-size: 24px;
+            font-weight: 600;
+            color: #4a2c1a;
+            letter-spacing: -0.3px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .header h1 i {
+            color: #e67e22;
+            font-size: 26px;
+        }
+        .header .sub {
+            font-size: 14px;
+            color: #a0724e;
+            margin-top: 4px;
+            border-left: 3px solid #f5a623;
+            padding-left: 12px;
+            background: linear-gradient(90deg, rgba(255,180,80,0.08), transparent);
+        }
+
+        /* 表单元素 统一橙系风格 */
+        .form-grid {
+            display: flex;
+            flex-direction: column;
+            gap: 18px;
+            margin-bottom: 24px;
+        }
+        .row {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 10px 12px;
+        }
+        .row label {
+            font-size: 14px;
+            font-weight: 500;
+            color: #4f321e;
+            min-width: 62px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .row label i {
+            color: #d97c2b;
+            width: 18px;
+            font-size: 15px;
+        }
+        .row input, .row select {
+            flex: 1;
+            min-width: 100px;
+            padding: 12px 14px;
+            background: rgba(255, 245, 235, 0.6);
+            border: 1px solid #eaced7;
+            border-radius: 18px;
+            font-size: 15px;
+            color: #2c1b0e;
+            outline: none;
+            transition: all 0.2s;
+            box-shadow: inset 0 2px 4px rgba(200, 120, 50, 0.02);
+        }
+        .row input:focus, .row select:focus {
+            border-color: #ff8c42;
+            background: #fff9f2;
+            box-shadow: 0 0 0 4px rgba(255, 140, 66, 0.2);
+        }
+        .row input[type="number"] {
+            -moz-appearance: textfield;
+        }
+        .row .inline-group {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            flex-wrap: wrap;
+            background: rgba(255, 215, 180, 0.15);
+            padding: 4px 10px 4px 14px;
+            border-radius: 40px;
+            border: 1px solid #fadbc8;
+        }
+        .inline-group input {
+            min-width: 45px;
+            width: 55px;
+            text-align: center;
+            padding: 8px 4px;
+            background: transparent;
+            border: none;
+            border-bottom: 2px solid #e6b28c;
+            border-radius: 0;
+            box-shadow: none;
+        }
+        .inline-group input:focus {
+            border-bottom-color: #ff7b2b;
+            background: rgba(255,255,240,0.3);
+        }
+        .inline-group span {
+            font-weight: 500;
+            color: #7f5536;
+            font-size: 14px;
+        }
+
+        /* 小时分钟秒 紧凑 */
+        .time-compact {
+            display: flex;
+            gap: 4px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+        .time-compact input {
+            width: 48px;
+            padding: 8px 2px;
+            text-align: center;
+        }
+        .time-compact span {
+            margin: 0 2px;
+            color: #a56e48;
+        }
+
+        /* 按钮 */
+        .action-bar {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+            margin: 16px 0 14px;
+        }
+        .btn {
+            flex: 1;
+            padding: 14px 16px;
+            border: none;
+            border-radius: 40px;
+            font-weight: 600;
+            font-size: 16px;
+            background: #ff8c42;
+            color: white;
+            box-shadow: 0 6px 16px rgba(255, 120, 20, 0.3);
+            cursor: pointer;
+            transition: 0.15s;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            letter-spacing: 0.3px;
+            min-width: 110px;
+        }
+        .btn i {
+            font-size: 18px;
+        }
+        .btn:hover {
+            background: #f57c2e;
+            transform: scale(1.01);
+            box-shadow: 0 8px 22px rgba(240, 120, 20, 0.35);
+        }
+        .btn:active {
+            transform: scale(0.97);
+        }
+        .btn-outline {
+            background: transparent;
+            border: 2px solid #e6a174;
+            color: #6f442a;
+            box-shadow: none;
+        }
+        .btn-outline:hover {
+            background: #ffe6d4;
+            border-color: #d97c2b;
+        }
+
+        /* 报告展示区 — 橙色高级质感 */
+        .report-box {
+            margin-top: 22px;
+            background: linear-gradient(145deg, #fcede0, #fcf1e7);
+            border-radius: 28px;
+            padding: 20px 22px;
+            border: 1px solid rgba(230, 170, 120, 0.4);
+            box-shadow: inset 0 1px 6px rgba(255, 215, 170, 0.3);
+        }
+        .report-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 2px dashed #ecc5aa;
+            padding-bottom: 12px;
+            margin-bottom: 14px;
+        }
+        .report-header h3 {
+            font-size: 17px;
+            font-weight: 600;
+            color: #4a2b16;
+        }
+        .report-header h3 i {
+            color: #e67e22;
+            margin-right: 6px;
+        }
+        .report-header .badge-light {
+            background: #e9d3c0;
+            padding: 4px 12px;
+            border-radius: 40px;
+            font-size: 12px;
+            color: #442e1b;
+        }
+
+        .report-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px 2px;
+            font-size: 15px;
+            color: #342216;
+            border-bottom: 1px solid #edd9c9;
+        }
+        .report-item:last-child {
+            border-bottom: none;
+        }
+        .report-item .label {
+            font-weight: 400;
+            opacity: 0.8;
+        }
+        .report-item .value {
+            font-weight: 600;
+            color: #a3541c;
+        }
+        .report-item .value strong {
+            color: #c96722;
+            font-size: 17px;
+        }
+        .total-earnings {
+            background: #f1d9c2;
+            border-radius: 18px;
+            padding: 14px 18px;
+            margin-top: 14px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-weight: 600;
+            font-size: 18px;
+            color: #2f1d0e;
+            border: 1px solid #eacbad;
+        }
+        .total-earnings .amount {
+            font-size: 28px;
+            color: #bf601a;
+            text-shadow: 0 2px 6px rgba(200, 90, 0, 0.1);
+        }
+        .total-earnings i {
+            color: #d97d2b;
+        }
+
+        .footer-note {
+            margin-top: 10px;
+            font-size: 13px;
+            color: #a77d5e;
+            text-align: right;
+            display: flex;
+            justify-content: flex-end;
+            align-items: center;
+            gap: 6px;
+        }
+
+        /* 响应式 */
+        @media (max-width: 480px) {
+            .card { padding: 24px 16px; }
+            .row { gap: 8px; }
+            .row label { min-width: 50px; font-size: 13px; }
+            .inline-group input { width: 40px; min-width: 35px; }
+            .btn { font-size: 14px; padding: 12px; }
+            .badge-corner span { font-size: 11px; padding: 5px 24px; top: 20px; left: -32px; }
+        }
+    </style>
+</head>
+<body>
+<div class="card">
+    <!-- 角标 · 喜播学堂 + 小喇叭 -->
+    <div class="badge-corner">
+        <span><i class="fas fa-bullhorn"></i> 喜播学堂</span>
+    </div>
+
+    <div class="header">
+        <h1>
+            <i class="fas fa-circle-dollar-to-slot"></i> 有声时薪计算器
+        </h1>
+        <div class="sub"><i class="fas fa-microphone-alt"></i> 为有声主播 · 实时收入报告</div>
+    </div>
+
+    <!-- 表单 -->
+    <div class="form-grid">
+        <!-- 主播名 + 工种 -->
+        <div class="row">
+            <label><i class="fas fa-user-astronaut"></i> 主播名</label>
+            <input type="text" id="anchorName" placeholder="例如：有声的紫襟" value="喜小猫">
+        </div>
+        <div class="row">
+            <label><i class="fas fa-briefcase"></i> 工种</label>
+            <select id="workType">
+                <option value="有声书主播">有声书主播</option>
+                <option value="配音员">配音员</option>
+                <option value="播客主理人">播客主理人</option>
+                <option value="广播剧演员">广播剧演员</option>
+                <option value="翻唱/歌手">翻唱/歌手</option>
+                <option value="其他">其他</option>
+            </select>
+        </div>
+
+        <!-- 时长：小时 分钟 秒 -->
+        <div class="row">
+            <label><i class="far fa-clock"></i> 工作时长</label>
+            <div class="time-compact inline-group">
+                <input type="number" id="hours" value="2" min="0" step="1" placeholder="时">
+                <span>时</span>
+                <input type="number" id="minutes" value="30" min="0" max="59" step="1" placeholder="分">
+                <span>分</span>
+                <input type="number" id="seconds" value="15" min="0" max="59" step="1" placeholder="秒">
+                <span>秒</span>
+            </div>
+        </div>
+
+        <!-- 时薪 -->
+        <div class="row">
+            <label><i class="fas fa-coins"></i> 时薪 (元)</label>
+            <input type="number" id="hourlyRate" value="45.00" min="0" step="0.01" placeholder="例如 50">
+        </div>
+    </div>
+
+    <!-- 按钮组 -->
+    <div class="action-bar">
+        <button class="btn" id="generateBtn"><i class="fas fa-file-invoice"></i> 生成报告</button>
+        <button class="btn btn-outline" id="clearBtn"><i class="fas fa-rotate-left"></i> 清空</button>
+    </div>
+
+    <!-- 报告输出区 -->
+    <div class="report-box" id="reportContainer">
+        <div class="report-header">
+            <h3><i class="fas fa-chart-simple"></i> 收入报告</h3>
+            <span class="badge-light"><i class="far fa-calendar-alt"></i> 实时</span>
+        </div>
+        <div id="reportContent">
+            <div class="report-item"><span class="label"><i class="fas fa-user"></i> 主播</span><span class="value" id="rName">——</span></div>
+            <div class="report-item"><span class="label"><i class="fas fa-tag"></i> 工种</span><span class="value" id="rWork">——</span></div>
+            <div class="report-item"><span class="label"><i class="fas fa-hourglass-half"></i> 总工时</span><span class="value" id="rTime">——</span></div>
+            <div class="report-item"><span class="label"><i class="fas fa-money-bill-wave"></i> 时薪</span><span class="value" id="rRate">——</span></div>
+            <div class="total-earnings">
+                <span><i class="fas fa-sack-dollar"></i> 总收入</span>
+                <span class="amount" id="rTotal">0.00 元</span>
+            </div>
+        </div>
+        <div class="footer-note">
+            <i class="fas fa-volume-high"></i> 有声 · 每一秒都算数
+        </div>
+    </div>
+</div>
+
+<script>
+    (function() {
+        // DOM 元素
+        const anchorName = document.getElementById('anchorName');
+        const workType = document.getElementById('workType');
+        const hoursInput = document.getElementById('hours');
+        const minutesInput = document.getElementById('minutes');
+        const secondsInput = document.getElementById('seconds');
+        const hourlyRateInput = document.getElementById('hourlyRate');
+
+        // 报告字段
+        const rName = document.getElementById('rName');
+        const rWork = document.getElementById('rWork');
+        const rTime = document.getElementById('rTime');
+        const rRate = document.getElementById('rRate');
+        const rTotal = document.getElementById('rTotal');
+
+        const generateBtn = document.getElementById('generateBtn');
+        const clearBtn = document.getElementById('clearBtn');
+
+        // 辅助函数：格式化数字保留两位小数
+        function toFixed2(num) {
+            return Number(num).toFixed(2);
+        }
+
+        // 核心：生成报告 & 语音反馈 (模拟有声)
+        function generateReport(playSound = true) {
+            // 获取并校验字段
+            const name = anchorName.value.trim() || '未命名主播';
+            const work = workType.value || '未知工种';
+            let hours = parseFloat(hoursInput.value) || 0;
+            let minutes = parseFloat(minutesInput.value) || 0;
+            let seconds = parseFloat(secondsInput.value) || 0;
+            let rate = parseFloat(hourlyRateInput.value) || 0;
+
+            // 边界保护：分钟/秒取整，范围合理化
+            minutes = Math.min(59, Math.max(0, Math.floor(minutes)));
+            seconds = Math.min(59, Math.max(0, Math.floor(seconds)));
+            if (hours < 0) hours = 0;
+            if (rate < 0) rate = 0;
+
+            // 计算总小时数 (精确到秒)
+            const totalHours = hours + minutes / 60 + seconds / 3600;
+            const totalEarnings = totalHours * rate;
+
+            // 更新报告 UI
+            rName.textContent = name;
+            rWork.textContent = work;
+            // 显示工时 如 "2小时 30分 15秒"
+            let timeString = '';
+            if (hours > 0) timeString += `${hours}小时 `;
+            if (minutes > 0) timeString += `${minutes}分 `;
+            if (seconds > 0) timeString += `${seconds}秒`;
+            if (!timeString) timeString = '0秒';
+            rTime.textContent = timeString.trim();
+            rRate.textContent = toFixed2(rate) + ' 元/小时';
+            rTotal.textContent = toFixed2(totalEarnings) + ' 元';
+
+            // 语音播报 (有声计算器特征) — 使用 Web Speech API
+            if (playSound && 'speechSynthesis' in window) {
+                try {
+                    // 构建一句友好的播报
+                    const msg = new SpeechSynthesisUtterance(
+                        `收入报告已更新。主播${name}，工种${work}，工作${timeString}，时薪${toFixed2(rate)}元，总收入${toFixed2(totalEarnings)}元。`
+                    );
+                    msg.lang = 'zh-CN';
+                    msg.rate = 1.0;
+                    msg.pitch = 1.2;  // 略活泼
+                    // 选择一个中文语音 (若有)
+                    const voices = speechSynthesis.getVoices();
+                    const zhVoice = voices.find(v => v.lang.startsWith('zh'));
+                    if (zhVoice) msg.voice = zhVoice;
+                    window.speechSynthesis.cancel(); // 避免重叠
+                    window.speechSynthesis.speak(msg);
+                } catch (e) {
+                    console.log('语音播报不可用，静默生成');
+                }
+            }
+
+            // 细微触觉反馈 (轻闪)
+            const reportBox = document.getElementById('reportContainer');
+            reportBox.style.transition = 'background 0.15s';
+            reportBox.style.background = '#f9e2cf';
+            setTimeout(() => reportBox.style.background = '', 300);
+        }
+
+        // 清空 & 重置
+        function resetForm() {
+            anchorName.value = '喜小猫';
+            workType.value = '有声书主播';
+            hoursInput.value = '2';
+            minutesInput.value = '30';
+            secondsInput.value = '15';
+            hourlyRateInput.value = '45.00';
+            // 清空报告占位
+            rName.textContent = '——';
+            rWork.textContent = '——';
+            rTime.textContent = '——';
+            rRate.textContent = '——';
+            rTotal.textContent = '0.00 元';
+            // 取消语音
+            if ('speechSynthesis' in window) {
+                window.speechSynthesis.cancel();
+            }
+        }
+
+        // 绑定事件
+        generateBtn.addEventListener('click', function(e) {
+            e.preventDefault();
+            generateReport(true);  // 播放语音
+        });
+
+        clearBtn.addEventListener('click', function(e) {
+            e.preventDefault();
+            resetForm();
+            // 可选的清空提示音（也可模拟短促无声）
+            if ('speechSynthesis' in window) {
+                const clearMsg = new SpeechSynthesisUtterance('已清空，可以重新设置');
+                clearMsg.lang = 'zh-CN';
+                clearMsg.rate = 0.9;
+                const voices = speechSynthesis.getVoices();
+                const zhVoice = voices.find(v => v.lang.startsWith('zh'));
+                if (zhVoice) clearMsg.voice = zhVoice;
+                window.speechSynthesis.cancel();
+                window.speechSynthesis.speak(clearMsg);
+            }
+        });
+
+        // 页面加载时自动生成一次报告 (预填充)
+        window.addEventListener('load', function() {
+            // 预先加载语音列表 (某些浏览器需要)
+            if ('speechSynthesis' in window) {
+                speechSynthesis.getVoices();
+            }
+            // 延迟一丢丢生成报告，但不播报 (静默)
+            setTimeout(() => generateReport(false), 100);
+        });
+
+        // 附加：按回车可以触发生成 (提升体验)
+        document.querySelectorAll('input, select').forEach(el => {
+            el.addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    e.preventDefault();
+                    generateBtn.click();
+                }
+            });
+        });
+    })();
+</script>
+</body>
+</html>
